@@ -66,7 +66,7 @@ class ListItemWithIcon(TwoLineAvatarIconListItem):
 
     def play_audio(self):
 
-        directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+        directory_path = '/storage/emulate/0/Recordings'
         filename = "Recording A.wav"
         file_path = os.path.join(directory_path, filename)
         # Open the wave file for playback
@@ -139,7 +139,7 @@ class FirstWindow(Screen):
     def get_audio_files(self):
         if au.CS() is True:
             # Get the directory path where WAV files are located
-            directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+            directory_path = '/storage/emulate/0/Recordings'
 
             # Iterate through files in the directory
             for file_name in os.listdir(directory_path):
@@ -160,7 +160,7 @@ class FirstWindow(Screen):
 
     def delete_audio_files(self):
         # Get the directory path where WAV files are located
-        directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+        directory_path = '/storage/emulate/0/Recordings'
 
         # Iterate through files in the directory
         for file_name in os.listdir(directory_path):
@@ -206,7 +206,7 @@ class FirstWindow(Screen):
 
     def play_audio(self):
 
-        directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+        directory_path = '/storage/emulate/0/Recordings'
         filename = "Recording A.wav"
         file_path = os.path.join(directory_path, filename)
         chunk = 1024
@@ -308,7 +308,7 @@ class FirstWindow(Screen):
         stream.close()
         audio.terminate()
 
-        directory = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+        directory = '/storage/emulate/0/Recordings'
 
         os.makedirs(directory, exist_ok=True)
 
@@ -365,11 +365,12 @@ class rawApp(MDApp):
         return WindowManager()
 
     def on_start(self, **kwargs):
-
-        if platform == "android":
+        if platform == 'android':
             from android.permissions import request_permissions, Permission
-            request_permissions([Permission.RECORD_AUDIO, Permission.WRITE_EXTERNAL_STORAGE,
-                                Permission.READ_EXTERNAL_STORAGE, Permission.INTERNET])
+
+
+request_permissions([Permission.READ_EXTERNAL_STORAGE,
+                    Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO, Permission.INTERNET])
 
 
 if __name__ == '__main__':
