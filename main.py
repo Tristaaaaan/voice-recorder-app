@@ -1,31 +1,36 @@
 from kivy.lang import Builder
 from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy import platform
+from kivy.properties import ListProperty, ObjectProperty
+from kivy.clock import Clock
+from kivy.factory import Factory
+
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.app import MDApp
 from kivymd.uix.button import MDFlatButton
+from kivymd.uix.list import OneLineIconListItem
+from kivymd.uix.list import MDList
+from kivymd.uix.list import TwoLineAvatarIconListItem
+from kivymd.uix.dialog import MDDialog
+
+import datetime
+import time
+import requests
+import numpy as np
 import threading
 import pyaudio
 import wave
 import os
-from kivymd.uix.list import OneLineIconListItem
-from kivymd.uix.list import MDList
-from kivymd.uix.list import TwoLineAvatarIconListItem
-from kivy.properties import ListProperty, ObjectProperty
-from kivy.clock import Clock
-import datetime
-from kivymd.uix.dialog import MDDialog
-import time
-import speech_recognition as sr
-import requests
-import numpy as np
+
 from audio import Audio
-from kivy import platform
 
 if platform == "android":
     from android.permissions import request_permissions, Permission
-    request_permissions([Permission.RECORD_AUDIO, Permission.INTERNET, Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
+    request_permissions([Permission.RECORD_AUDIO, Permission.INTERNET,
+                        Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
 
 au = Audio()
+
 
 class ListItemWithIcon(TwoLineAvatarIconListItem):
     '''Custom list item'''
@@ -39,7 +44,8 @@ class ListItemWithIcon(TwoLineAvatarIconListItem):
 
     def on_kv_post(self, base_widget):
         super().on_kv_post(base_widget)
-        self.ids._left_container.padding = [self._txt_left_pad, "0dp", "0dp", "0dp"]
+        self.ids._left_container.padding = [
+            self._txt_left_pad, "0dp", "0dp", "0dp"]
 
     def play_rec(self):
         if self.ids.status.icon == 'play':
@@ -59,8 +65,12 @@ class ListItemWithIcon(TwoLineAvatarIconListItem):
             self.playback_paused = True
 
     def play_audio(self):
+
+        directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+        filename = "Recording A.wav"
+        file_path = os.path.join(directory_path, filename)
         # Open the wave file for playback
-        wf = wave.open("Recording A.wav", 'rb')
+        wf = wave.open(file_path, 'rb')
 
         # Initialize PyAudio for playback
         audio = pyaudio.PyAudio()
@@ -102,10 +112,11 @@ class ListItemWithIcon(TwoLineAvatarIconListItem):
 
     def on_enter(self):
         super().on_enter()
-        
+
         # Reset playback state when entering the screen
         self.playback_paused = False
         self.playback_completed = False
+
 
 class FirstWindow(Screen):
 
@@ -117,17 +128,18 @@ class FirstWindow(Screen):
         super().__init__(**kw)
 
         Clock.schedule_once(self.begin)
-                                      
+
     def begin(self, *args):
-        if  au.FI() is  True:
+        if au.FI() is True:
             self.get_audio_files()
         else:
-            self.error_dialog(message="Sorry, the application failed to establish a connection. Please try again.")
+            self.error_dialog(
+                message="Sorry, the application failed to establish a connection. Please try again.")
 
     def get_audio_files(self):
         if au.CS() is True:
             # Get the directory path where WAV files are located
-            directory_path = r'C:\Users\markt\Desktop\TITAN\Voice Recorder'
+            directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
 
             # Iterate through files in the directory
             for file_name in os.listdir(directory_path):
@@ -140,14 +152,15 @@ class FirstWindow(Screen):
             for file_name in self.files:
                 list_item = ListItemWithIcon(text=file_name)
                 self.ids.container.add_widget(list_item)
-            
+
             self.files = []
         else:
-            self.error_dialog(message="Sorry, the application failed to establish a connection. Please try again.")
-            
+            self.error_dialog(
+                message="Sorry, the application failed to establish a connection. Please try again.")
+
     def delete_audio_files(self):
         # Get the directory path where WAV files are located
-        directory_path = r'C:\Users\markt\Desktop\TITAN\Voice Recorder'
+        directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
 
         # Iterate through files in the directory
         for file_name in os.listdir(directory_path):
@@ -155,7 +168,7 @@ class FirstWindow(Screen):
             if file_name.endswith('.wav'):
                 # Construct the absolute file path
                 file_path = os.path.join(directory_path, file_name)
-                
+
                 # Delete the file
                 os.remove(file_path)
 
@@ -193,9 +206,11 @@ class FirstWindow(Screen):
 
     def play_audio(self):
 
-        directory_path = r'C:\Users\markt\Desktop\TITAN\Voice Recorder'
+        directory_path = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+        filename = "Recording A.wav"
+        file_path = os.path.join(directory_path, filename)
         chunk = 1024
-        wf = wave.open("Recording A.wav", 'rb')
+        wf = wave.open(file_path, 'rb')
         audio = pyaudio.PyAudio()
 
         stream = audio.open(
@@ -215,10 +230,11 @@ class FirstWindow(Screen):
         stream.stop_stream()
         stream.close()
         audio.terminate()
-    
+
         self.ids.sett.disabled = False
         self.ids.rec.disabled = False
     # -------------------------- START  RECORDING ------------------------------
+
     def start_recording(self):
         self.delete_audio_files()
 
@@ -235,13 +251,16 @@ class FirstWindow(Screen):
         frames = []
 
         # Silence Threshold
-        energy_threshold = MDApp.get_running_app().root.ids.second.ids.silence_treshold.value * 100
+        energy_threshold = MDApp.get_running_app(
+        ).root.ids.second.ids.silence_treshold.value * 100
 
         # Silence Duration
-        max_silence_duration = MDApp.get_running_app().root.ids.second.ids.silence_duration.value
+        max_silence_duration = MDApp.get_running_app(
+        ).root.ids.second.ids.silence_duration.value
 
         # Length of Record (Max 20s)
-        recording_length = MDApp.get_running_app().root.ids.second.ids.recording_length.value
+        recording_length = MDApp.get_running_app(
+        ).root.ids.second.ids.recording_length.value
 
         silence_frames = 0
         silence_start_time = None
@@ -289,8 +308,14 @@ class FirstWindow(Screen):
         stream.close()
         audio.terminate()
 
+        directory = r"C:\Users\markt\Desktop\TITAN\voice-recorder-app\recordings"
+
+        os.makedirs(directory, exist_ok=True)
+
+        filename = os.path.join(directory, "Recording A.wav")
         # Save audio frames to a WAV file
-        wf = wave.open("Recording A.wav", 'wb')
+
+        wf = wave.open(filename, 'wb')
         wf.setnchannels(1)
         wf.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
         wf.setframerate(44100)
@@ -304,9 +329,10 @@ class FirstWindow(Screen):
         self.play_audio()
 
     def settings(self):
-        
+
         self.manager.current = "second"
         self.manager.transition.direction = "left"
+
 
 class SecondWindow(Screen):
 
@@ -327,20 +353,24 @@ class SecondWindow(Screen):
 
         self.back()
 
+
 class WindowManager(ScreenManager):
     pass
+
 
 class rawApp(MDApp):
 
     def build(self):
 
         return WindowManager()
-    
+
     def on_start(self, **kwargs):
 
         if platform == "android":
             from android.permissions import request_permissions, Permission
-            request_permissions([Permission.RECORD_AUDIO, Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE, Permission.INTERNET])
+            request_permissions([Permission.RECORD_AUDIO, Permission.WRITE_EXTERNAL_STORAGE,
+                                Permission.READ_EXTERNAL_STORAGE, Permission.INTERNET])
+
 
 if __name__ == '__main__':
     rawApp().run()
