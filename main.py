@@ -357,8 +357,7 @@ class WindowManager(ScreenManager):
 class rawApp(MDApp):
 
     def build(self):
-        # Print the current working directory
-        print(os.getcwd())
+
         return WindowManager()
 
 
