@@ -24,11 +24,6 @@ import os
 
 from audio import Audio
 
-if platform == "android":
-    from android.permissions import request_permissions, Permission
-    request_permissions([Permission.RECORD_AUDIO, Permission.INTERNET,
-                        Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
-
 au = Audio()
 
 
@@ -66,7 +61,7 @@ class ListItemWithIcon(TwoLineAvatarIconListItem):
 
     def play_audio(self):
 
-        directory_path = '/storage/emulate/0/Recordings'
+        directory_path = os.path.abspath("./recordings")
         filename = "Recording A.wav"
         file_path = os.path.join(directory_path, filename)
         # Open the wave file for playback
@@ -139,8 +134,9 @@ class FirstWindow(Screen):
     def get_audio_files(self):
         if au.CS() is True:
             # Get the directory path where WAV files are located
-            directory_path = '/storage/emulate/0/Recordings'
+            directory_path = os.path.abspath("./recordings")
 
+            os.makedirs(directory_path, exist_ok=True)
             # Iterate through files in the directory
             for file_name in os.listdir(directory_path):
                 # Check if the file has a .wav extension
@@ -160,7 +156,7 @@ class FirstWindow(Screen):
 
     def delete_audio_files(self):
         # Get the directory path where WAV files are located
-        directory_path = '/storage/emulate/0/Recordings'
+        directory_path = os.path.abspath("./recordings")
 
         # Iterate through files in the directory
         for file_name in os.listdir(directory_path):
@@ -206,7 +202,7 @@ class FirstWindow(Screen):
 
     def play_audio(self):
 
-        directory_path = '/storage/emulate/0/Recordings'
+        directory_path = os.path.abspath("./recordings")
         filename = "Recording A.wav"
         file_path = os.path.join(directory_path, filename)
         chunk = 1024
@@ -308,7 +304,7 @@ class FirstWindow(Screen):
         stream.close()
         audio.terminate()
 
-        directory = '/storage/emulate/0/Recordings'
+        directory = "./recordings"
 
         os.makedirs(directory, exist_ok=True)
 
@@ -361,16 +357,9 @@ class WindowManager(ScreenManager):
 class rawApp(MDApp):
 
     def build(self):
-
+        # Print the current working directory
+        print(os.getcwd())
         return WindowManager()
-
-    def on_start(self, **kwargs):
-        if platform == 'android':
-            from android.permissions import request_permissions, Permission
-
-
-request_permissions([Permission.READ_EXTERNAL_STORAGE,
-                    Permission.WRITE_EXTERNAL_STORAGE, Permission.RECORD_AUDIO, Permission.INTERNET])
 
 
 if __name__ == '__main__':
